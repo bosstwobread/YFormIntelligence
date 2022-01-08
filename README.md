@@ -1,6 +1,6 @@
 
 #文件配置说明
-``` json
+``` javascript
 const ERROR_CODE = require('../config/error_code.json')
 
 module.exports = {
