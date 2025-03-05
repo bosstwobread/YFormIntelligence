@@ -1,93 +1,225 @@
 #[易逻辑]介绍
-通过配置即可实现后台逻辑实现，包含大量逻辑单元实现、可扩展插件式、单元错误处理、定义导出文件等；的以下是简单示例：
-``` javascript
-    //查询用户列表
-    "getUserList": {
-        routerOperate: [
-            { key: "获取排序字段", fun: YFI.plug.expression.ask, args: [{ symbol: "===", left: "{{#orderProp}}", right: undefined, result: "create_time", then: "{{#orderProp}}" }] },//create_time
-            { key: "获取正逆排序关键字", fun: YFI.plug.expression.ask, args: [{ symbol: "===", left: "{{#orderAsc}}", right: true, result: "ASC", then: "DESC" }] },//DESC
-            { key: "获取页码", fun: YFI.plug.expression.ask, args: [{ symbol: "===", left: "{{#current}}", right: undefined, result: undefined, then: "{{#current}}" }] },//DESC
-            { key: "获取单页总数", fun: YFI.plug.expression.ask, args: [{ symbol: "===", left: "{{#size}}", right: undefined, result: undefined, then: "{{#size}}" }] },//DESC
-            { key: "获取用户集合", fun: YFI.plug.mysql.getPageDataBySelect, args: ["account", "id,'' password,name,type,create_time", [{ field: "name", value: "{{#name}}", compareSymbol: "like" }, { field: "type", value: "{{#type}}" }, { field: "create_time", value: "{{#create_time}}", compareSymbol: "between" }], "{{~results.获取排序字段}} {{~results.获取正逆排序关键字}}", "{{~results.获取页码}}", "{{~results.获取单页总数}}"] },
-            { key: "返回用户集合", fun: YFI.plug.http.responseEnd, args: ["{{~lastResult}}"] }
-        ],
-        export: {
-            fileName: "用户清单",
-            fields: [{ key: "name", caption: '账号ID', field_type: 'string' },
-            { key: "type", caption: '属性', field_type: 'int', dic: [{ value: 0, text: "超级管理员" }, { value: 1, text: "管理员" }] }, { key: "create_time", caption: '添加时间', field_type: 'date' }],
-        }
-    },
+Based on the analysis of the configuration files, I'll provide a comprehensive breakdown of all JSON configuration formats supported by the system:
+# System Configuration Format Documentation
 
-```
-
-#文件配置说明
-``` javascript
-const ERROR_CODE = require('../config/error_code.json')
-
-module.exports = {
-    "路由名称": {
-        //路由执行前置过滤条件
-        filters: [
-            YFI.plug.commonFilter.authentication, "#tel", "#nickname", { field: "#tel", fun: YFI.plug.commonFilter.iInternationalTel },
-            { field: "~user.parent", fun: YFI.plug.commonFilter.unEmpty, args: [ERROR_CODE.ERROR_CHILD_OPERATION_NOT_ALLOWED, "不能在子账号下添加账号"] }]
-        ,
-        /** 路由执行单元，按顺序执行
-         * 每一个单元可获取上一个单元的执行结果作为参数
-        */
-        routerOperate: [
-            {
-                /**  方法是否异步
-                 * 异步方法需要执行框架回调方法才能进行下一步，框架会将回调方法callback直接作为参数放到该方法最后一个参数中
-                 * 调用举例：callback({ code: error_code.ERROR_SUCCESS });
-                */
-                async: false,
-
-                //路由单元主键名,获取指定单元数据可使用此建名，后续会再次举例
-                key: "routerUnitName",
-
-                //路由单元执行主方法，框架提供大量方法来实现逻辑功能
-                fun: YFI.plug.mysql.seleteSingle,
-
-                /** 路由单元参数，参数按数组顺序传入逻辑执行单元方法中
-                 * 系统参数使用 {{keyword}}
-                 * 举例：{{#user_name}}
-                 * #开头表示post/get请求体参数
-                 * ~开头表示系统内置参数;如下：
-                 *  ~user 用户信息 如： ~user.user_name
-                 *  ~results 路由单元数据：如 ~results.key  这里的key为路由单元主键名
-                 *  ~lastResult 上一单元执行返回的数据 如： ~lastResult.data
-                 * 支持字符串拼接操作，如"{{#tel}}"+"{{~user.name}}"
-                 */
-                args: ["device", "device_id,device_tel", [{ field: "tel", value: "{{~user.tel}}" }]],
-
-                /**  逻辑单元执行未符合预期，报错处理
-                 * condition 满足条件则抛错误,如未定义默认值为false
-                 * error_code 错误代码
-                 * error_msg 错误消息
-                */
-                showError: {
-                    condition: true,
-                    error_code: ERROR_CODE.ERROR_PARAMETER,
-                    error_msg: "参数有问题哦"
-                },
-                //路由执行前置条件，暂未实现
-                condition
-            }
-        ]
-    },
+## 1. Basic Route Configuration
+```javascript
+{
+    "route_name": {
+        "filters": [], // Filter configurations
+        "routerOperate": [], // Router operation configurations
+        "log": {}, // Logging configurations
+        "export": {} // Export configurations
+    }
 }
 ```
 
-#路由函数
+## 2. Filter Configurations (filters)
+```javascript
+"filters": [
+    // 1. Simple parameter validation
+    "{{#parameter_name}}", 
 
-|  表头   | 表头  |
-|  ----  | ----  |
-| 单元格  | 单元格 |
-| 单元格  | 单元格 |
+    // 2. Built-in filters
+    FLI.plug.commonFilter.authentication,
+    FLI.plug.commonFilter.authenticationManage,
 
-# YFormIntelligence
-后台接口配置化  
-node版本:v16.0.0  
-微信:bosstwobread  
-钉钉:boss520  
-邮箱:boss520@dingtalk.com 
+    // 3. Custom filter rules
+    { 
+        "field": "{{#field_name}}", 
+        "fun": FLI.plug.commonFilter.iInternationalTel,
+        "args": [ERROR_CODE, "error_message"]
+    }
+]
+```
+
+## 3. Router Operation Configuration (routerOperate)
+```javascript
+"routerOperate": [
+    {
+        "key": "operation_name",
+        "fun": FLI.plug.mysql.seleteSingle, // Execution function
+        "args": [], // Parameter list
+        "this": null, // Function execution context
+        "async": false, // Async flag
+        "showError": { // Error handling
+            "condition": true/false/"non-existent",
+            "error_code": ERROR_CODE.XXX,
+            "error_msg": "Error message"
+        }
+    }
+]
+```
+
+## 4. Parameter Reference Formats
+```javascript
+{
+    // 1. POST request body parameters
+    "{{#parameter}}",
+
+    // 2. System built-in parameters
+    "{{~user}}", // User information
+    "{{~lastResult}}", // Previous step result
+    "{{~results.key}}", // Specific step result
+    "{{~req}}", // Request object
+    "{{~res}}", // Response object
+
+    // 3. Expression evaluation
+    "{{expression}}"
+}
+```
+
+## 5. Database Operation Configuration
+```javascript
+{
+    // 1. Query configuration
+    "args": [
+        "table_name", 
+        "fields",
+        [
+            {
+                "field": "field_name",
+                "value": "{{#value}}",
+                "compareSymbol": "like/=/between/!="
+            }
+        ],
+        "order_by",
+        "page",
+        "size"
+    ],
+
+    // 2. Join queries
+    "args": [
+        [
+            {
+                "table": "table1",
+                "alias": "t1"
+            },
+            {
+                "table": "table2",
+                "alias": "t2",
+                "join": "left join/join",
+                "equal": [
+                    {
+                        "left": "t1.field",
+                        "right": "t2.field"
+                    }
+                ]
+            }
+        ]
+    ]
+}
+```
+
+## 6. Export Configuration (export)
+```javascript
+"export": {
+    "fileName": "export_filename",
+    "fields": [
+        {
+            "key": "field_name",
+            "caption": "display_name",
+            "field_type": "string/int/date/datetime",
+            "dic": [ // Data dictionary
+                {
+                    "value": 0,
+                    "text": "display_text"
+                }
+            ]
+        }
+    ],
+    "beforeExport": {
+        "fun": FLI.plug.business.verifyExportPwd,
+        "args": ["{{#pwd}}"]
+    },
+    "log": {
+        "main_type": "Export",
+        "child_type": "Export Type"
+    }
+}
+```
+
+## 7. Logging Configuration (log)
+```javascript
+"log": {
+    "main_type": "Main Type",
+    "child_type": "Sub Type"
+}
+```
+
+## 8. Conditional Expression Configuration
+```javascript
+{
+    "symbol": "===/>=/<=",
+    "left": "{{#value}}",
+    "right": "comparison_value",
+    "result": "true_result",
+    "then": "false_result"
+}
+```
+
+## 9. Cache Operation Configuration
+```javascript
+{
+    "args": [
+        "cache_key",
+        "expire_time",
+        "cache_value"
+    ]
+}
+```
+
+## System Features and Capabilities
+
+### Core Functionalities
+1. **Request Parameter Validation**
+   - Input validation
+   - Type checking
+   - Custom validation rules
+
+2. **Business Logic Processing**
+   - Operation chaining
+   - Conditional execution
+   - Error handling
+
+3. **Database Operations**
+   - CRUD operations
+   - Complex queries
+   - Transaction management
+
+4. **Error Handling**
+   - Custom error codes
+   - Error messages
+   - Error conditions
+
+5. **Logging**
+   - Operation logging
+   - Error logging
+   - Audit trails
+
+6. **Data Export**
+   - Custom formatting
+   - Data transformation
+   - Export validation
+
+7. **Cache Management**
+   - Key-value storage
+   - Expiration management
+   - Cache invalidation
+
+8. **Access Control**
+   - Authentication
+   - Authorization
+   - Permission checking
+
+### Key Features
+- All configurations support expression evaluation and variable references
+- Highly flexible and configurable system
+- Support for async operations
+- Built-in error handling
+- Comprehensive logging system
+- Extensible plugin architecture
+- Database abstraction layer
+- Export functionality with customization options
+
+This configuration system provides a powerful and flexible way to build complex business applications with minimal code, focusing on configuration rather than implementation.
