@@ -15,6 +15,9 @@ var cache = {
     get: myRedisGet,
     set: function () {
         myRedis.setex.apply(myRedis, arguments)
+    },
+    remove: function () {
+        myRedis.del.apply(myRedis, arguments)
     }
 }
 module.exports = cache;

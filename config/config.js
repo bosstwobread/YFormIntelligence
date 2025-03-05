@@ -6,15 +6,27 @@ const isDev = true;
 console.log({ isDev: isDev });
 const config = {
     isDev: isDev,
-    http_port: 8021,
-    server: "https://phone.yunchengjutech.com",
+    http_port: 8090,
+    server: "https://phone.xxoo.com",
     database: {
         DATABASE: 'smart',
         USERNAME: isDev ? 'dev' : 'dev',
-        PASSWORD: isDev ? 'WheatEK233' : 'WheatEK233',
+        PASSWORD: isDev ? 'xxoo' : 'xxoo',
         PORT: '3306',
-        HOST: isDev ? 'rm-2vc397git8own2x14wo.mysql.cn-chengdu.rds.aliyuncs.com' : 'rm-2vc397git8own2x14wo.mysql.cn-chengdu.rds.aliyuncs.com'
+        HOST: isDev ? 'xxoo' : 'xxoo'
     },
-    token_expire: 7 * 24 * 3600
+    apk_folder: 'apks',
+    version: {
+        android: {
+            url: "android_url",
+            version_name: "0.1.0",
+            version_code: 1
+        },
+        ios: {
+            url: "ios_url",
+            version_name: "0.1.0",
+            version_code: 1
+        }
+    }
 };
 module.exports = config;

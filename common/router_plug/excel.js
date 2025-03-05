@@ -6,6 +6,8 @@
 const ERROR_CODE = require('../../config/error_code.json')
 var excelExport = require('excel-export');
 var yfiDate = require('./date')
+const routerBase = require('../../common/router_base')
+const log = require('./log')
 
 //后期考虑安全性问题还是要改成类，把关键方法隐藏起来
 var excel = {
@@ -22,8 +24,25 @@ var excel = {
          * @param {action配置} action_config 
          * @param {执行routerOperate返回的数据} operate_result 
          */
-        exec: function (req, res, action_config, operate_result) {
+        exec: async function (req, res, action_config, operate_result, route_name, action) {
             try {
+                if (action_config && action_config.export && action_config.export.beforeExport) {
+                    var argsCopy = []
+                    if (action_config.export.beforeExport.args !== undefined) {
+                        argsCopy = JSON.parse(JSON.stringify(action_config.export.beforeExport.args));
+                    }
+                    if (typeof argsCopy === "object" && argsCopy.length > 0) {
+                        //递归遍历所有参数 并 转换
+                        argsCopy = routerBase.recursionJson(argsCopy, function (value) {
+                            return routerBase.getConfigValue(req, res, value);
+                        });
+                    }
+                    var beforeExportResult = await action_config.export.beforeExport.fun.apply(null, argsCopy);
+                    if (beforeExportResult && beforeExportResult.code !== ERROR_CODE.ERROR_SUCCESS && beforeExportResult.errors && beforeExportResult.errors.length > 0) {
+                        res.end(beforeExportResult.errors[0].error_msg)
+                        return;
+                    }
+                }
                 var keyConifg = action_config.export;
                 let conf = {};
                 let fileName = keyConifg.fileName;
@@ -83,6 +102,9 @@ var excel = {
                         }
                         conf.rows.push(row);
                     });
+                }
+                if (action_config && action_config.export && action_config.export.log) {
+                    await log.addLog(req, route_name, action, action_config.export.log);
                 }
                 excel.export(res, conf.cols, conf.rows, fileName);
             }

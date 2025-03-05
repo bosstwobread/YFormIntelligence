@@ -77,7 +77,8 @@ var routerOperate = {
 
                         //如果返回的结果中包含错误信息则直接抛错
                         if (result && typeof result == "object" && result.errors && result.errors.length && result.errors.length > 0) {
-                            result.code = ERROR_CODE.ERROR_PARAMETER;
+                            // result.code = result.code === undefined ? ERROR_CODE.ERROR_PARAMETER : result.code;
+                            result.code = ERROR_CODE.ERROR_PARAMETER
                             return result;
                         }
                         //识别到直接返回信息

@@ -5,15 +5,44 @@ const ERROR_CODE = require('../../config/error_code.json')
 const redis = require('redis');
 const { promisify } = require("util");
 const config = require('../../config/config');
-// const mysql = require('../../mysql_connect/mysql_connect')
+const mysql = require('../../mysql_connect/mysql_connect')
 const rds = redis.createClient();
 const redisGetAsync = promisify(rds.get).bind(rds);
 
 //后期考虑安全性问题还是要改成类，把关键方法隐藏起来
 var commonFilter = {
+    //用户身份token验证,管理端
+    authenticationManage: async (req, res) => {
+        var token;
+        // 参数错误
+        if (req.method == "POST") {
+            token = req.headers.authorization
+        }
+        else if (req.method == "GET") {
+            // token = req.query["token"]ß
+            token = req.cookies.token
+        }
+        // 参数错误
+        if (!token) {
+            return { error_code: ERROR_CODE.ERROR_TOKEN_EXPIRED, error_msg: "用户身份错误" }
+        }
+
+        const user = await check_token(token)
+        if (!user) {
+            return { error_code: ERROR_CODE.ERROR_TOKEN_EXPIRED, error_msg: "用户身份错误" }
+        }
+        async function check_token(token) {
+            const tel = await redisGetAsync("token:" + token)
+            if (!tel) {
+                return null
+            }
+            return tel
+        }
+    },
     //用户身份token验证,用户端
     authentication: async (req, res) => {
         const token = req.headers.authorization
+
         // 参数错误
         if (!token) {
             return { error_code: ERROR_CODE.ERROR_TOKEN_EXPIRED, error_msg: "用户身份错误" }
@@ -29,7 +58,7 @@ var commonFilter = {
             if (!tel) {
                 return null
             }
-            const user = {};//= await mysql.get_user_info(tel)
+            const user = await mysql.get_user_info(tel)
             user.is_child = user.parent ? 1 : 0;
             if (!user || !user.password) {
                 return null

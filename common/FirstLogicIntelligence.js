@@ -1,25 +1,25 @@
 /**
- * YFormIntelligence -- 缩写YFI 中文：壹表单
+ * FirstLogicIntelligence -- 缩写FLI 中文：壹表单
  */
 const routerFilter = require('./router_filter');
 const routerOperate = require('./router_operate');
 const error_code = require('../config/error_code.json');
 
-var YFormIntelligence = {
+var FirstLogicIntelligence = {
     _routers: {},
     plug: {},
     createRouter: createRouter,
     addPlug: addPlug,
-    actionPlug: [],
+    actionPlug: [], //路由扩展插件，如excel统一导出插件
     actionFilter: routerFilter
 }
 initPlug();
 
 function createRouter(_router, route_name) {
     var config = require('../routes_config/' + route_name);
-    YFormIntelligence._routers[route_name] = {};
+    FirstLogicIntelligence._routers[route_name] = {};
     for (var _action in config) {
-        YFormIntelligence._routers[route_name][_action] = config[_action];
+        FirstLogicIntelligence._routers[route_name][_action] = config[_action];
         if (config[_action]) {
             createAction.call(null, _action);
             function createAction(action) {
@@ -33,7 +33,7 @@ function createRouter(_router, route_name) {
                     var result = { code: error_code.ERROR_SUCCESS }
                     var routerOperateConfig = config[action].routerOperate;
                     if (routerOperateConfig) {
-                        var _result = await routerOperate.execOperate(req, res, next, routerOperateConfig, action);
+                        var _result = await routerOperate.execOperate(req, res, next, routerOperateConfig, action, route_name);
                         if (_result) {
                             result = _result;
                             if (_result.async == true) {
@@ -41,12 +41,16 @@ function createRouter(_router, route_name) {
                             }
                         }
                     }
+                    //log
+                    if (config[action].log && result.code == error_code.ERROR_SUCCESS) {
+                        await FirstLogicIntelligence.plug.log.addLog(req, route_name, action, config[action].log);
+                    }
                     res.end(JSON.stringify(result))
                 });
             }
         }
-        if (YFormIntelligence.actionPlug && YFormIntelligence.actionPlug.length > 0) {
-            YFormIntelligence.actionPlug.forEach(element => {
+        if (FirstLogicIntelligence.actionPlug && FirstLogicIntelligence.actionPlug.length > 0) {
+            FirstLogicIntelligence.actionPlug.forEach(element => {
                 //配置中是否存在该插件 关键配置信息 element.actionKeyName
                 if (config[_action] && config[_action][element.actionKeyName]) {
                     createAction.call(null, _action);
@@ -66,7 +70,7 @@ function createRouter(_router, route_name) {
                             if (routerOperateConfig) {
                                 var _result = await routerOperate.execOperate(req, res, next, routerOperateConfig, action);
                                 //只支持当前 routerOperate 非异步的情况
-                                element.exec(req, res, config[action], _result);
+                                await element.exec(req, res, config[action], _result, route_name, action);
                             }
                         });
                     }
@@ -81,20 +85,21 @@ function createRouter(_router, route_name) {
  * plugs = {name:"",path}
 */
 function initPlug(plugs) {
-    loadPlug(["commonFilter", "encrypt", "http", "mysql", "user", "condition", "cache", "date", "expression", "excel", "vm2"]);
+    loadPlug(["commonFilter", "encrypt", "http", "mysql", "user", "condition", "cache", "date", "expression", "excel", "vm2", "log", "config"]);
     function loadPlug(plugs) {
         if (plugs && plugs.length && plugs.length > 0) {
             for (var index = 0; index < plugs.length; index++) {
                 var plug = plugs[index];
                 if (typeof plug === "string") {
                     //系统内置插件
-                    YFormIntelligence.plug[plug] = require('../common/router_plug/' + plug)
-                    if (YFormIntelligence.plug[plug].$newRouterFlag && typeof YFormIntelligence.plug[plug].$newRouterFlag === "object") {
-                        YFormIntelligence.actionPlug.push(YFormIntelligence.plug[plug].$newRouterFlag);
+                    FirstLogicIntelligence.plug[plug] = require('../common/router_plug/' + plug)
+                    if (FirstLogicIntelligence.plug[plug].$newRouterFlag && typeof FirstLogicIntelligence.plug[plug].$newRouterFlag === "object") {
+                        FirstLogicIntelligence.actionPlug.push(FirstLogicIntelligence.plug[plug].$newRouterFlag);
                     }
                 }
                 else if (typeof plug === "object") {
                     //第三方插件
+
                 }
             }
         }
@@ -102,7 +107,7 @@ function initPlug(plugs) {
 }
 
 function addPlug(plugName, plugUrl) {
-    YFormIntelligence.plug[plugName] = require(plugUrl)
+    FirstLogicIntelligence.plug[plugName] = require(plugUrl)
 }
 
 //router类
@@ -131,7 +136,7 @@ function operate(router_key, action_key, operate_key) {
     //设置操作方法
     this.setFun = function (fun) {
         if (typeof fun === "function") {
-            var routerOperates = YFormIntelligence._routers[this.routerKey][this.actionKey].routerOperate;
+            var routerOperates = FirstLogicIntelligence._routers[this.routerKey][this.actionKey].routerOperate;
             if (routerOperates && routerOperates.length) {
                 for (var index = 0; index < routerOperates.length; index++) {
                     if (routerOperates[index].key == this.operateKey) {
@@ -145,4 +150,4 @@ function operate(router_key, action_key, operate_key) {
 }
 
 // module.exports = createServer
-module.exports = { YFI: YFormIntelligence }
+module.exports = { FLI: FirstLogicIntelligence }

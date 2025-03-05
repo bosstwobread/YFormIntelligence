@@ -35,7 +35,7 @@ function liantong() {
                     resolve(res)
                 }).catch(function (error) {
                     console.error({ flag: "liantong-invoke", url: _url, body: _body, error: error })
-                    resolve(error);
+                    reject(error);
                 });
             }
         });

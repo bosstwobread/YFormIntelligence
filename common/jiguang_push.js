@@ -1,5 +1,11 @@
 /** 极光推送
 *   https://github.com/jpush/jpush-api-nodejs-client
+*   修改过源码：位置 PushPayload.js function android 函数 最后增加
+  android['intent'] = {
+    //act=android.intent.action.VIEW;flg=0x10000000;cmp=com.wheatek.fila.android/com.wheatek.phone.MainActivity;end
+    //act=android.intent.action.VIEW;cmp=com.wheatek.fila.android/com.wheatek.phone.MainActivity;end
+    url: "intent:#Intent;action=android.intent.action.VIEW;end"
+  }
 */
 var { JPush } = require("jpush-async")
 const CONFIG = require('../config/config')

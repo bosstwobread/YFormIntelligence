@@ -8,14 +8,14 @@ const commonFilter = require('../common/router_plug/commonFilter')
 
 /****** 请求过来所有过滤器，如用户认证，参数空判断 
  * router.post('/modify-password', async (req, res, next) => {
-    const routerFilter = [YFI.plug.commonFilter.authentication, "#name", { field: "#old", fun: YFI.plug.commonFilter.iEmpty }];
-    YFI.plug.commonFilter.authentication(req, res, next, routerFilter);
+    const routerFilter = [FLI.plug.commonFilter.authentication, "#name", { field: "#old", fun: FLI.plug.commonFilter.iEmpty }];
+    FLI.plug.commonFilter.authentication(req, res, next, routerFilter);
 }, async function (req, res, next) {
  * ******/
 var routerFilter = {
     //执行所有过滤器
     execFilters: async (req, res, next, router_filter) => {
-        const result = { code: ERROR_CODE.ERROR_SUCCESS, errors: [] }
+        // const result = { code: ERROR_CODE.ERROR_SUCCESS, errors: [] }
         for (var index = 0; index < router_filter.length; index++) {
             var verify_params_type = typeof router_filter[index];
             var error = {}
@@ -56,14 +56,16 @@ var routerFilter = {
                 default: break;
             }
             if (error) {
-                result.errors.push(error);
+                // result.errors.push(error);
+                res.end(JSON.stringify({ code: error.error_code }));
+                return;
             }
         }
-        if (result.errors.length > 0) {
-            result.code = ERROR_CODE.ERROR_PARAMETER;
-            res.end(JSON.stringify(result));
-            return;
-        }
+        // if (result.errors.length > 0) {
+        //     result.code = ERROR_CODE.ERROR_PARAMETER;
+        //     res.end(JSON.stringify(result));
+        //     return;
+        // }
         next();
     }
 }

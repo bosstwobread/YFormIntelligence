@@ -2,8 +2,10 @@
 const ERROR_CODE = require('../../config/error_code.json')
 const mysql = require('mysql');
 const config = require('../../config/config')
+const configYFI = require('./config')
 const format = require('string-format')
 const { v4: uuidv4 } = require('uuid');
+const encrypt = require('./encrypt')
 format.extend(String.prototype)
 var moment = require('moment');
 
@@ -31,14 +33,16 @@ class Mysql {
         var fieldValues = [];
         var fieldParams = [];
         var updateSQL = "";
+        mySQL.encryptKeyValueProcess(keyValues)
         if (option) {
             if (option.keyName && !keyValues[option.keyName]) {
                 keyValues[option.keyName] = uuidv4();
             }
             if (option.isEmptyNotUpdateed) {
                 var emptyNotUpdateed = option.isEmptyNotUpdateed.split(",");
+                var emptyValue = option.emptyValue ? option.emptyValue : "";
                 for (var notUpdatedIndex = 0; notUpdatedIndex < emptyNotUpdateed.length; notUpdatedIndex++) {
-                    if (keyValues[emptyNotUpdateed[notUpdatedIndex]] === "") {
+                    if (keyValues[emptyNotUpdateed[notUpdatedIndex]] === emptyValue) {
                         delete keyValues[emptyNotUpdateed[notUpdatedIndex]];
                     }
                 }
@@ -70,6 +74,7 @@ class Mysql {
         var fieldValues = [];
         var where = "";
         var keyIndex = 0;
+        mySQL.encryptKeyValueProcess(keyValues)
         for (var fieldName in keyValues) {
             fieldValues.push(keyValues[fieldName]);
             if (keyIndex == 0) {
@@ -137,6 +142,7 @@ class Mysql {
                 if (error) {
                     reject(error)
                 } else {
+                    mySQL.decryptFieldProcess(results);
                     resolve(results)
                 }
             })
@@ -144,7 +150,7 @@ class Mysql {
     }
 
     /** 通用查询操作
-     * demo:mysql.select("user", "tel", { parent })
+     * demo:FLI.plug.mysql.select("user", "tel", { parent })
     */
     async select(tableName, fields, keyValues, order, pageIndex, pageSize) {
         var fieldValues = [];
@@ -152,53 +158,56 @@ class Mysql {
         var keyIndex = 0;
         var limit = "";
         var orderby = "";
-        if (keyValues && typeof keyValues === 'object' && keyValues.length && keyValues.length > 0) {
-            for (var index = 0; index < keyValues.length; index++) {
-                if (keyValues[index].value !== undefined && keyValues[index].value !== null) {
-                    var compareSymbolWhere = "";
-                    switch (keyValues[index].compareSymbol) {
-                        case "like":
-                            compareSymbolWhere = " LIKE '%" + keyValues[index].value + "%'";
-                            break;
-                        case "between":
-                            if (keyValues[index].value.length && keyValues[index].value[0] && keyValues[index].value[1]) {
-                                var startDate = moment(keyValues[index].value[0]).format("YYYY-MM-DD");
-                                var endDate = moment(keyValues[index].value[1]).add(1, 'days').format("YYYY-MM-DD");
-                                compareSymbolWhere = " BETWEEN '" + startDate + "' AND '" + endDate + "'";
-                            }
-                            break;
-                        case "judge null":
-                            if (keyValues[index].value == 0) {
-                                compareSymbolWhere = " is null";
-                            }
-                            else if (keyValues[index].value == 1) {
-                                compareSymbolWhere = " is not null";
-                            }
-                            break;
-                        case undefined:
-                            fieldValues.push(keyValues[index].value);
-                            compareSymbolWhere = " = ?";
-                            break;
-                        default:
-                            fieldValues.push(keyValues[index].value);
-                            compareSymbolWhere = " " + keyValues[index].compareSymbol + " ?";
-                            break;
-                    }
-                    if (compareSymbolWhere) {
-                        if (keyIndex == 0) {
-                            where += " WHERE ";
+        if (keyValues) {
+            if (typeof keyValues === 'object' && keyValues.length && keyValues.length > 0) {
+                mySQL.encryptKeyValuesProcess(keyValues)
+                for (var index = 0; index < keyValues.length; index++) {
+                    if (keyValues[index].value !== undefined && keyValues[index].value !== null) {
+                        var compareSymbolWhere = "";
+                        switch (keyValues[index].compareSymbol) {
+                            case "like":
+                                compareSymbolWhere = " LIKE '%" + keyValues[index].value + "%'";
+                                break;
+                            case "between":
+                                if (keyValues[index].value.length && keyValues[index].value[0] && keyValues[index].value[1]) {
+                                    var startDate = moment(keyValues[index].value[0]).format("YYYY-MM-DD");
+                                    var endDate = moment(keyValues[index].value[1]).add(1, 'days').format("YYYY-MM-DD");
+                                    compareSymbolWhere = " BETWEEN '" + startDate + "' AND '" + endDate + "'";
+                                }
+                                break;
+                            case "judge null":
+                                if (keyValues[index].value == 0) {
+                                    compareSymbolWhere = " is null";
+                                }
+                                else if (keyValues[index].value == 1) {
+                                    compareSymbolWhere = " is not null";
+                                }
+                                break;
+                            case undefined:
+                                fieldValues.push(keyValues[index].value);
+                                compareSymbolWhere = " = ?";
+                                break;
+                            default:
+                                fieldValues.push(keyValues[index].value);
+                                compareSymbolWhere = " " + keyValues[index].compareSymbol + " ?";
+                                break;
                         }
-                        else {
-                            where += " AND ";
+                        if (compareSymbolWhere) {
+                            if (keyIndex == 0) {
+                                where += " WHERE ";
+                            }
+                            else {
+                                where += " AND ";
+                            }
+                            where += keyValues[index].field + compareSymbolWhere;
                         }
-                        where += keyValues[index].field + compareSymbolWhere;
+                        keyIndex++;
                     }
-                    keyIndex++;
                 }
             }
-        }
-        else {
-            throw new Error("keyValues is not correct," + JSON.stringify(keyValues));
+            else {
+                throw new Error("keyValues is not correct," + JSON.stringify(keyValues));
+            }
         }
         if (pageIndex !== undefined && pageSize !== undefined) {
             limit += "LIMIT " + pageSize * (pageIndex - 1) + "," + pageSize;
@@ -242,6 +251,7 @@ class Mysql {
                 if (error) {
                     reject(error)
                 } else {
+                    mySQL.decryptFieldProcess(results);
                     resolve(results)
                 }
             })
@@ -264,6 +274,46 @@ class Mysql {
             return true;
         }
         return false;
+    }
+
+    //process insert/delete KeyValues
+    encryptKeyValueProcess(keyValues) {
+        if (configYFI.encryptField && configYFI.encryptField.length > 0) {
+            for (var fieldName in keyValues) {
+                if (configYFI.encryptField.includes(fieldName) && keyValues[fieldName]) {
+                    keyValues[fieldName] = encrypt.encrypt(keyValues[fieldName]);
+                }
+            }
+        }
+    }
+
+    //process where condition
+    encryptKeyValuesProcess(keyValues) {
+        if (configYFI.encryptField && configYFI.encryptField.length > 0) {
+            for (var index = 0; index < keyValues.length; index++) {
+                var actualFieldName = keyValues[index].field;
+                //exist alias
+                if (actualFieldName.indexOf(".") > -1) {
+                    actualFieldName = actualFieldName.substring(actualFieldName.indexOf(".") + 1)
+                }
+                if (configYFI.encryptField.includes(actualFieldName) && keyValues[index].value) {
+                    keyValues[index].value = encrypt.encrypt(keyValues[index].value);
+                }
+            }
+        }
+    }
+
+    decryptFieldProcess(results) {
+        if (configYFI.encryptField && configYFI.encryptField.length > 0) {
+            for (var result_index = 0; result_index < results.length; result_index++) {
+                var row = results[result_index]
+                for (var column in row) {
+                    if (configYFI.encryptField.includes(column) && row[column]) {
+                        row[column] = encrypt.decrypt(row[column]);
+                    }
+                }
+            }
+        }
     }
 }
 const mySQL = new Mysql();

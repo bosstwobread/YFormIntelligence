@@ -26,6 +26,7 @@ var condition = {
                     case ">":
                         break;
                     case ">=":
+                        return expression[1] >= expression[2] ? true : false;
                         break;
                     case "<":
                         break;

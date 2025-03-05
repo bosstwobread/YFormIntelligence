@@ -62,7 +62,7 @@ module.exports = {
                                             value = JSON.parse(queryP);
                                         }
                                         catch (ex) {
-                                            throw new Error({ flag: "getConfigValue.#", ex: ex, queryP: queryP });
+                                            throw new Error({ flag: "getConfigValue", ex: ex, queryP: queryP });
                                         }
                                     }
                                     else {
@@ -107,6 +107,9 @@ module.exports = {
                                     break;
                                 case "res":
                                     rtnValue = res;
+                                    break;
+                                case "req":
+                                    value = req;
                                     break;
                                 default: break;
                             }
