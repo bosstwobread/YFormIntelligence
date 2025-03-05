@@ -1,5 +1,3 @@
-#[易逻辑]介绍
-Based on the analysis of the configuration files, I'll provide a comprehensive breakdown of all JSON configuration formats supported by the system:
 # System Configuration Format Documentation
 
 ## 1. Basic Route Configuration
