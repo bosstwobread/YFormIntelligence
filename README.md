@@ -222,4 +222,4 @@
 
 This configuration system provides a powerful and flexible way to build complex business applications with minimal code, focusing on configuration rather than implementation.
 
-For more examples, please refer to the demoForConfiguration file
+For more examples, please refer to the routes_config/manage.js file
