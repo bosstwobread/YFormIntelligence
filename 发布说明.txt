@@ -1,0 +1,10 @@
+连接站点sftp
+端口：8220 
+用户名:root
+密码:520520520
+
+上传并覆盖相关文件
+
+进入宿主机重启站点:
+docker restart WheatEK-Phone-Backend
+pm2 start pm2.config.js
