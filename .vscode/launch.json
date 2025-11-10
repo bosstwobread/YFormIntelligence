@@ -5,7 +5,7 @@
       "type": "node",
       "request": "launch",
       "name": "Debug Server",
-      "program": "${workspaceFolder}/bin/www.ts",
+      "program": "${workspaceFolder}/bin/www",
       "runtimeExecutable": "node",
       "runtimeArgs": ["-r", "ts-node/register"],
       "env": {
