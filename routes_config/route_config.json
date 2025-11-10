@@ -1,0 +1,21 @@
+{
+    "removeToken": {
+        "filters": [
+            "FLI.plug.commonFilter.authenticationManage",
+            "{{#token}}"
+        ],
+        "routerOperate": [
+            {
+                "key": "清除缓存",
+                "fun": "FLI.plug.cache.remove",
+                "args": [
+                    "token:{{#token}}"
+                ]
+            }
+        ],
+        "log": {
+            "main_type": "进出系统",
+            "child_type": "注销"
+        }
+    }
+}

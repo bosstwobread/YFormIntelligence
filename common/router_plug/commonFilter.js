@@ -5,7 +5,7 @@ const ERROR_CODE = require('../../config/error_code.json')
 const redis = require('redis');
 const { promisify } = require("util");
 const config = require('../../config/config');
-const mysql = require('../../mysql_connect/mysql_connect')
+const mysql = require('./mysql')
 const rds = redis.createClient();
 const redisGetAsync = promisify(rds.get).bind(rds);
 
@@ -58,7 +58,8 @@ var commonFilter = {
             if (!tel) {
                 return null
             }
-            const user = await mysql.get_user_info(tel)
+            const user = await mysqlYFI.select([{ table: "user", alias: "u" }, { table: "device", alias: "d", join: "left join", equal: [{ left: "d.tel", right: "u.tel" }] }], "u.*,d.device_id,d.device_tel", [{ field: "u.tel", value: tel, compareSymbol: "=" }])
+            if (results.length != 0) user = user[0]
             user.is_child = user.parent ? 1 : 0;
             if (!user || !user.password) {
                 return null
