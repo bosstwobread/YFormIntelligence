@@ -9,9 +9,9 @@ import type { Server } from 'http';
 import * as http from 'http';
 import * as fs from 'fs';
 
+// Import app from TypeScript version
+import app = require('../app');
 // Using require for CommonJS modules
-// @ts-ignore
-const app = require('../app');
 // @ts-ignore
 const CONFIG = require('../config/config');
 

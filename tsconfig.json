@@ -12,6 +12,7 @@
     "allowJs": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
+    "sourceMap": true,
     "baseUrl": "./",
     "paths": {
       "*": ["node_modules/*"]
@@ -19,6 +20,7 @@
   },
   "ts-node": {
     "transpileOnly": true,
+    "preferTsExts": true,
     "compilerOptions": {
       "module": "CommonJS"
     }
