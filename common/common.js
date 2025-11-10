@@ -1,5 +1,5 @@
 //通用方法
-const mysql = require('../mysql_connect/mysql_connect')
+const mysql = require('./router_plug/mysql')
 const myAliWulianwang = require('../common/ali_wulianwang')
 const error_code = require('../config/error_code.json')
 const config = require('../config/config')

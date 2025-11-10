@@ -21,6 +21,8 @@
     "prd": "pm2 start pm2.config.js"
   },
   "dependencies": {
+    "@alicloud/pop-core": "^1.8.0",
+    "axios": "^1.13.2",
     "compression": "^1.7.4",
     "connect-redis": "^6.0.0",
     "cookie-parser": "~1.4.4",
