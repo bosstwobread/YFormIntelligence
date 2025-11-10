@@ -5,16 +5,16 @@
       "type": "node",
       "request": "launch",
       "name": "Debug Server",
-      "program": "${workspaceFolder}/bin/www",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["-r", "ts-node/register"],
+      "program": "${workspaceFolder}/bin/www.js",
+      "runtimeArgs": ["--inspect-brk"],
       "env": {
-        "NODE_ENV": "development",
-        "TS_NODE_FILES": "true"
+        "NODE_ENV": "development"
       },
-      "sourceMaps": true,
+      "sourceMaps": false,
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
+      "internalConsoleOptions": "neverOpen",
+      "stopOnEntry": false,
+      "skipFiles": ["<node_internals>/**"]
     },
     {
       "type": "node",
