@@ -17,6 +17,7 @@ import connectRedis from 'connect-redis';
 // @ts-ignore
 const CONFIG = require('./config/config');
 // @ts-ignore
+const appRouter = require('./routes/app');
 const managerRouter = require('./routes/manager');
 
 const MemoryStoreSession = MemoryStore(session);
@@ -72,6 +73,7 @@ if (app.get('env') === 'production') {
 
     // 必须写在路由定义的上面，否则req.session为空，无法使用
     app.use(session(sess));
+    app.use('/api/v1/', appRouter);
     app.use('/manager/v1/', managerRouter);
 } else {
     console.log("un_production");
@@ -80,6 +82,7 @@ if (app.get('env') === 'production') {
 
     // 必须写在路由定义的上面，否则req.session为空，无法使用
     app.use(session(sess));
+    app.use('/appservice/api/v1/', appRouter);
     app.use('/appservice/manager/v1/', managerRouter);
 }
 
