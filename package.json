@@ -57,7 +57,8 @@
     "svg-captcha": "^1.4.0",
     "tenpay": "^2.1.18",
     "uuid": "^8.3.2",
-    "vm2": "^3.9.5"
+    "vm2": "^3.9.5",
+    "jade": "^1.11.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.5",
