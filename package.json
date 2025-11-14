@@ -18,10 +18,15 @@
     "dev": "./node_modules/.bin/nodemon bin/www",
     "build": "tsc",
     "dev:ts": "tsc && node ./dist/bin/www.js",
-    "prd": "pm2 start pm2.config.js"
+    "prd": "pm2 start pm2.config.js",
+    "nest": "ts-node nest/main.ts",
+    "nest:dev": "nodemon --watch nest --exec ts-node nest/main.ts"
   },
   "dependencies": {
     "@alicloud/pop-core": "^1.8.0",
+    "@nestjs/common": "^11.1.9",
+    "@nestjs/core": "^11.1.9",
+    "@nestjs/platform-express": "^11.1.9",
     "axios": "^1.13.2",
     "compression": "^1.7.4",
     "connect-redis": "^6.0.0",
@@ -43,7 +48,9 @@
     "node-forge": "^0.10.0",
     "node-xlsx": "^0.17.2",
     "redis": "^3.1.2",
+    "reflect-metadata": "^0.2.2",
     "rhea": "^2.0.4",
+    "rxjs": "^7.8.2",
     "save": "^2.4.0",
     "sm3": "^1.0.3",
     "string-format": "^2.0.0",
